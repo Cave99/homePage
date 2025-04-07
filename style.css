@@ -462,6 +462,116 @@ body {
     background: #4fc3f7;
     color: #121212;
   }
+
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap */
+    gap: 0.5rem; /* Add gap between buttons */
+    margin-bottom: 0.5rem; /* Space below filters */
+  }
+  
+  /* Style for the AI Overview button (matches other filter buttons) */
+  #ai-overview-btn {
+    /* Inherits base button styles */
+    /* Add specific styles if needed, e.g., slightly different color */
+    /* border-color: #9c27b0; */
+    /* color: #9c27b0; */
+  }
+  
+  /* Active state for AI Overview button */
+  #ai-overview-btn.active {
+    background: #4fc3f7; /* Or a different highlight color */
+    color: #121212;
+    /* background: #9c27b0; */
+    /* color: white; */
+  }
+  
+  /* AI Overview Content Area */
+  #ai-overview-content {
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Separator line */
+    padding-top: 1rem;
+    flex-grow: 1; /* Allow it to take space like review-list */
+    overflow-y: auto; /* Add scroll if content is long */
+    max-height: 400px; /* Match max-height of review-list */
+  }
+  
+  /* Styling within AI Overview */
+  #ai-overview-content h4 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: #e0e0e0;
+    font-weight: 600;
+  }
+  
+  #ai-overview-content p {
+    color: #ccc;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+  
+  #ai-overview-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+  }
+  
+  #ai-overview-content li {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.3rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between; /* Space out text and button */
+    align-items: center; /* Vertically align text and button */
+    gap: 0.5rem; /* Space between text and button */
+  }
+  
+  /* Style for the text part of the suggested task */
+  #ai-overview-content li span {
+      flex-grow: 1; /* Allow text to take available space */
+      word-break: break-word; /* Wrap long task text */
+  }
+  
+  
+  /* Style for the 'Add Task' button */
+  #ai-overview-content .add-task-ai-btn {
+    background: transparent;
+    border: 1px solid #4caf50; /* Green border */
+    color: #4caf50; /* Green text */
+    padding: 0.3rem 0.6rem; /* Smaller padding */
+    font-size: 0.8rem; /* Smaller font */
+    border-radius: 0.3rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap; /* Prevent button text wrapping */
+    flex-shrink: 0; /* Prevent button from shrinking */
+  }
+  
+  #ai-overview-content .add-task-ai-btn:hover {
+    background: #4caf50; /* Green background on hover */
+    color: #fff; /* White text on hover */
+  }
+  
+  /* Scrollbar for AI Overview (optional, matches review-list) */
+  #ai-overview-content::-webkit-scrollbar {
+    width: 8px;
+  }
+  #ai-overview-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+  }
+  #ai-overview-content::-webkit-scrollbar-thumb {
+    background-color: rgba(79, 195, 247, 0.6);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  #ai-overview-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(79, 195, 247, 0.8);
+  }
+
   #review-filter-keyword {
     width: calc(100% - 1.5rem);
     margin-bottom: 1rem;

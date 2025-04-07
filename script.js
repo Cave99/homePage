@@ -107,6 +107,12 @@ import {
   const toggleGroundingBtn = document.getElementById("toggle-grounding-btn");
 
 
+  const aiOverviewBtn = document.getElementById("ai-overview-btn");
+  const aiOverviewContent = document.getElementById("ai-overview-content");
+  const standardReviewFilters = document.getElementById("standard-review-filters");
+  let isAIOverviewActive = false;
+
+
   // --- Function Definitions ---
   function loadLinks() {
     if (!quickLinksBar || !addNewLinkBtn) return; // Defensive check
@@ -1036,6 +1042,21 @@ function formatAIResponse(text) {
       endDate.setDate(startDate.getDate() + daysFilter);
       endDate.setHours(23, 59, 59, 999);
     }
+
+    if (isAIOverviewActive) {
+      aiOverviewContent.style.display = "none";
+      reviewList.style.display = "block"; // Show standard list
+      standardReviewFilters.style.display = "block"; // Show standard filters
+      aiOverviewBtn.classList.remove("active");
+      isAIOverviewActive = false;
+      // Ensure the correct standard filter button is active
+      const currentStandardFilter = document.querySelector(".filters button.active[data-filter]");
+      if (!currentStandardFilter) { // If no standard filter was active, default to week
+          document.querySelector('.filters button[data-filter="7"]').classList.add('active');
+      }
+    }
+
+
     reviewList.innerHTML = "";
     let filteredEvents = allEvents.filter((event) => {
       const eventStartStr = event.start.dateTime || event.start.date;
@@ -1269,6 +1290,287 @@ function processAndPreviewImageFile(file) {
       fileInput.value = null; // Ensure file input is cleared
     }
     
+
+    async function fetchEventsForAI(months = 2) {
+      if (!gapi.client.getToken()) {
+          console.log("Not authorized, skipping AI event fetch.");
+          return null; // Indicate unauthorized or error
+      }
+  
+      const now = new Date();
+      const timeMin = now.toISOString();
+      const timeMaxDate = new Date(now);
+      timeMaxDate.setMonth(timeMaxDate.getMonth() + months);
+      const timeMax = timeMaxDate.toISOString();
+  
+      console.log(`AI Overview: Fetching events from ${timeMin} to ${timeMax}`);
+  
+      try {
+          // Fetch events for the specified range
+          const response = await gapi.client.calendar.events.list({
+          calendarId: "primary",
+          timeMin: timeMin,
+          timeMax: timeMax,
+          showDeleted: false,
+          singleEvents: true,
+          maxResults: 100, // Limit results slightly for performance
+          orderBy: "startTime",
+          });
+          const events = response.result.items;
+          console.log(`AI Overview: Fetched ${events?.length || 0} events.`);
+          return events || []; // Return events or empty array
+      } catch (err) {
+          console.error("Error fetching calendar events for AI:", err);
+          // Handle specific errors like 401 if needed
+          if (err.status === 401) {
+              updateSigninStatus(false); // Update UI to show authorize button
+          }
+          return null; // Indicate error
+      }
+  }
+  
+  // --- NEW Function: Generate AI Overview ---
+  async function generateAIOverview() {
+    if (!genAI || !chatModel) {
+      aiOverviewContent.innerHTML = "<p>Error: AI Model not initialized.</p>";
+      return;
+    }
+    if (!gapi.client.getToken()) {
+      aiOverviewContent.innerHTML =
+        "<p>Please authorize Google Calendar first.</p>";
+      return;
+    }
+  
+    isAIOverviewActive = true; // Set flag
+    aiOverviewContent.innerHTML =
+      "<p>Fetching events and generating overview...</p>"; // Loading message
+    aiOverviewContent.style.display = "block"; // Show container
+    reviewList.style.display = "none"; // Hide standard list
+    standardReviewFilters.style.display = "none"; // Hide standard filters
+  
+    // 1. Fetch Events
+    const events = await fetchEventsForAI(2); // Fetch next 2 months
+  
+    if (events === null) {
+      // Error handled within fetchEventsForAI or unauthorized
+      aiOverviewContent.innerHTML =
+        "<p>Could not fetch calendar events. Please ensure you are authorized or try again later.</p>";
+      return;
+    }
+  
+    if (events.length === 0) {
+      aiOverviewContent.innerHTML =
+        "<p>No upcoming events found in the next two months.</p>";
+      return;
+    }
+  
+    // 2. Format Events for Prompt
+    const formattedEvents = events
+      .map((event) => {
+        const start = event.start.dateTime || event.start.date;
+        const startDate = new Date(start);
+        const dateStr = startDate.toLocaleDateString("en-CA"); // YYYY-MM-DD
+        const timeStr = event.start.dateTime
+          ? startDate.toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            })
+          : "All Day";
+        return `${dateStr} ${timeStr} - ${event.summary || "(No Title)"}`;
+      })
+      .join("\n");
+  
+    // 3. Construct Prompt
+    const prompt = `Analyze the following calendar events for the next two months (current date: ${new Date().toLocaleDateString(
+      "en-CA"
+    )}).
+  Provide the information in the following sections, using bullet points (*) or very short descriptions for each item. Keep the overall tone helpful and slightly fun. **Do not output just a bullet point if a list section is empty.**
+  
+  **Next 3 days:**
+  *   List top 3 important events or appointments happening today, tomorrow, and the day after. Include date/time.
+  *   If no key events are found in the next 3 days, state "* No notable events in the next 3 days."
+  
+  **Next shift:**
+  *   Based on event names (like 'Work', 'Shift', 'On Call', etc.) or recurring patterns, try to identify the date and time of the next likely work shift.
+  *   If no work shifts are obvious in the upcoming week, state "Next work shift not clearly identified in the upcoming week."
+  
+  **Upcoming deadlines:**
+  *   List any events in the next two months that contain the deadline marker '🚨' in their summary. Include the date.
+  *   If no deadlines are found, state "No upcoming deadlines found."
+  
+  **Keep it fun:**
+  *   Suggest one brief, fun thing based on the schedule (like preparing for a fun event) or a general positive note/short activity suggestion (e.g., "Don't forget to take a short walk!"). If you can't think of anything specific, a simple positive message is fine.
+  
+  **Recommended tasks:**
+  *   Suggest 3-5 actionable tasks related to preparing for upcoming events (especially deadlines or meetings). Start each task with '* '.
+  *   If no specific tasks come to mind, state "No specific task recommendations based on the schedule."
+  
+  Events:
+  \`\`\`
+  ${formattedEvents}
+  \`\`\`
+  
+  Please format the entire response clearly with the specified headings. Use bullet points (*) for lists where appropriate, but follow the instructions above if a list is empty.`;
+  
+    // 4. Call Gemini API
+    try {
+      console.log("Sending prompt to Gemini for AI Overview...");
+      // Use generateContent for a single-turn request
+      const result = await chatModel.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+  
+      // *** ADD THIS LINE FOR DEBUGGING ***
+      console.log("--- Raw AI Overview Response ---");
+      console.log(text);
+      console.log("------------------------------");
+      // *** END OF DEBUGGING LINE ***
+  
+      console.log("AI Overview response received. Parsing...");
+  
+      // 5. Parse and Display Response
+      aiOverviewContent.innerHTML = ""; // Clear loading message
+  
+      // Helper function to extract content between headings or to the end
+      const extractSection = (text, startHeading) => {
+        const startIndex = text.indexOf(startHeading);
+        if (startIndex === -1) return null; // Heading not found
+  
+        // Find the start of the *next* heading (look for '**') after the current one
+        const nextHeadingIndex = text.indexOf(
+          "**",
+          startIndex + startHeading.length
+        );
+  
+        let sectionText;
+        if (nextHeadingIndex !== -1) {
+          // Found next heading, extract text between them
+          sectionText = text
+            .substring(startIndex + startHeading.length, nextHeadingIndex)
+            .trim();
+        } else {
+          // No subsequent heading found, take text to the end
+          sectionText = text.substring(startIndex + startHeading.length).trim();
+        }
+        return sectionText;
+      };
+  
+      // Define the headings we expect
+      const headings = [
+        "Next 3 days:",
+        "Next shift:",
+        "Upcoming deadlines:",
+        "Keep it fun:",
+        "Recommended tasks:",
+      ];
+  
+      // Process each section
+      headings.forEach((heading) => {
+        const sectionContent = extractSection(text, `**${heading}**`); // Look for bolded heading
+  
+        if (sectionContent !== null && sectionContent !== "") {
+          const sectionDiv = document.createElement("div");
+          sectionDiv.style.marginBottom = "1rem"; // Add space between sections
+  
+          const title = document.createElement("h4");
+          title.textContent = heading;
+          sectionDiv.appendChild(title);
+  
+          if (heading === "Recommended tasks:") {
+            // Special handling for tasks to add buttons
+            const taskList = document.createElement("ul");
+            const taskLines = sectionContent.trim().split("\n");
+            let tasksFound = 0;
+            taskLines.forEach((line) => {
+              // Make regex slightly more tolerant: optional space after *
+              const taskTextMatch = line.match(/^\s*[*]\s*(.*)/);
+              if (taskTextMatch) {
+                const taskText = taskTextMatch[1].trim();
+                // *** ADDED CHECK: Ensure extracted text is not empty ***
+                if (taskText && taskText.length > 0) {
+                  tasksFound++;
+                  const li = document.createElement("li");
+                  const span = document.createElement("span");
+                  span.textContent = taskText; // Use textContent for safety
+  
+                  const addButton = document.createElement("button");
+                  addButton.textContent = "Add Task";
+                  addButton.className = "add-task-ai-btn";
+                  addButton.onclick = () => addTaskFromAI(taskText);
+  
+                  li.appendChild(span);
+                  li.appendChild(addButton);
+                  taskList.appendChild(li);
+                } else {
+                  // Log if we matched a bullet but the text was empty
+                  console.log(
+                    "AI Overview: Matched task bullet but text was empty:",
+                    line
+                  );
+                }
+              }
+            });
+  
+            if (tasksFound > 0) {
+              sectionDiv.appendChild(taskList);
+            } else {
+              // If the heading exists but no valid tasks found, show the raw content
+              // This will now display the "No specific task recommendations..." message from the prompt
+              const contentP = document.createElement("div");
+              contentP.innerHTML = formatAIResponse(sectionContent); // Format potential text
+              sectionDiv.appendChild(contentP);
+            }
+          } else {
+            // For other sections, format the content directly
+            // Use formatAIResponse which handles paragraphs, lists etc.
+            const contentP = document.createElement("div"); // Use div to allow block elements from formatAIResponse
+            contentP.innerHTML = formatAIResponse(sectionContent);
+            sectionDiv.appendChild(contentP);
+          }
+          aiOverviewContent.appendChild(sectionDiv);
+        } else {
+          // Optional: Add a message if a specific section wasn't found
+          console.warn(
+            `AI Overview: Section "${heading}" not found or empty in response.`
+          );
+          // You could add a placeholder message here if desired:
+          // const placeholder = document.createElement('p');
+          // placeholder.textContent = `(${heading} section not provided by AI.)`;
+          // placeholder.style.color = '#aaa';
+          // aiOverviewContent.appendChild(placeholder);
+        }
+      });
+  
+      // Add a fallback if NO sections were parsed at all
+      if (aiOverviewContent.children.length === 0) {
+        aiOverviewContent.innerHTML =
+          "<p>Could not parse the AI response. The format might have changed.</p>";
+        console.log("AI Response Text:", text); // Log raw text for debugging
+      }
+    } catch (error) {
+      // ... (existing error handling remains the same) ...
+      console.error("Error generating AI Overview:", error);
+      aiOverviewContent.innerHTML = `<p>Error generating AI overview: ${error.message}. Check console for details.</p>`;
+    }
+  }
+  
+  
+  // --- NEW Helper Function: Add Task from AI Suggestion ---
+  function addTaskFromAI(taskText) {
+    if (!todoInput || !addTodo) {
+        console.error("Todo input or addTodo function not available.");
+        return;
+    }
+    todoInput.value = taskText; // Set the text in the input field
+    addTodo(); // Call the existing function to add it
+    console.log(`Added task from AI: "${taskText}"`);
+    // Optional: Briefly flash the added item or scroll to it
+    // (Requires modification in addTodo/renderTodos to identify the newly added item)
+    // For now, just adding it is sufficient.
+  }
+  
+
+
     document.addEventListener("DOMContentLoaded", () => {
       console.log("DOM fully loaded and parsed");
  
@@ -1527,9 +1829,12 @@ function processAndPreviewImageFile(file) {
         gapiSignoutButton &&
         prevMonthBtn &&
         nextMonthBtn &&
-        filterButtons &&
+        filterButtons && // Keep this for standard filters
         reviewKeywordInput &&
-        reviewFilterType
+        reviewFilterType &&
+        aiOverviewBtn && // Add the new button
+        aiOverviewContent && // Add the new content area
+        standardReviewFilters // Add the standard filters container
       ) {
         gapiAuthorizeButton.onclick = () => {
           if (!gapiInited || !gisInited) {
@@ -1580,19 +1885,59 @@ function processAndPreviewImageFile(file) {
           }
           fetchAndDisplayCalendarEvents();
         };
+
         filterButtons.forEach((btn) => {
-          btn.onclick = () => {
-            filterButtons.forEach((b) => b.classList.remove("active"));
-            btn.classList.add("active");
-            loadDailyReview(); // Assumes this reads filters and updates reviewList
-          };
-        });
+          // Check if it's NOT the AI overview button
+          if (btn.id !== 'ai-overview-btn') {
+              btn.onclick = () => {
+                  // Deactivate ALL buttons first (including AI button)
+                  document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+                  // Activate the clicked standard filter button
+                  btn.classList.add("active");
+
+                  // *** NEW: Ensure standard view is shown ***
+                  aiOverviewContent.style.display = "none";
+                  reviewList.style.display = "block";
+                  standardReviewFilters.style.display = "block";
+                  isAIOverviewActive = false;
+                  // *** END NEW ***
+
+                  loadDailyReview(); // Load standard review
+              };
+          }
+      });
+
+
+
         reviewKeywordInput.addEventListener("input", loadDailyReview);
         reviewFilterType.addEventListener("change", loadDailyReview);
+
+        aiOverviewBtn.onclick = () => {
+          // Deactivate ALL buttons first
+          document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+          // Activate AI button
+          aiOverviewBtn.classList.add("active");
+          // Call the generation function
+          generateAIOverview();
+      };
+      // --- END Listener for AI Overview Button ---
+
+
+      reviewKeywordInput.addEventListener("input", () => {
+          // Only trigger standard load if AI view isn't active
+          if (!isAIOverviewActive) loadDailyReview();
+      });
+      reviewFilterType.addEventListener("change", () => {
+          // Only trigger standard load if AI view isn't active
+          if (!isAIOverviewActive) loadDailyReview();
+      });
+
         loadDailyReview(); // Initial load for review
       } else {
         console.error("Calendar/Review elements not found!");
       }
+
+      
     
       // AI Chat
       if (
