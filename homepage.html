@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Productivity Hub</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="style.css" />
+
+    <script type="module" defer src="script.js"></script>
+    <!-- Google API Client Library -->
+
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/generative-ai/+esm"></script>
+    <script defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <!-- Google Identity Services -->
+    <script defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+
+    
+
+  </head>
+  <body>
+    <!-- Quick Links Bar Container -->
+    <div id="quick-links-container">
+      <div id="quick-links-bar">
+        <!-- Quick links will be loaded here by JS -->
+        <button id="add-new-link-btn">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            class="bi bi-plus-lg"
+            viewBox="0 0 16 16"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"
+            />
+          </svg>
+          New
+        </button>
+      </div>
+    </div>
+
+    <!-- Add Link Modal -->
+    <div id="add-link-modal" class="modal-overlay">
+      <div class="modal-content">
+        <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+        <h2>Add New Quick Link</h2>
+        <label for="modal-link-url">URL:</label>
+        <input
+          type="url"
+          id="modal-link-url"
+          placeholder="https://example.com"
+          required
+        />
+        <label for="modal-link-name">Name:</label>
+        <input
+          type="text"
+          id="modal-link-name"
+          placeholder="Link name"
+          required
+        />
+        <div class="modal-actions">
+          <button id="modal-cancel-btn" class="secondary-action">
+            Cancel
+          </button>
+          <button id="modal-add-link-btn" class="primary-action">
+            Add Link
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Pomodoro Timer -->
+      <div class="glass">
+        <h2>Pomodoro Timer</h2>
+        <div id="timer-display">25:00</div>
+        <div id="pomodoro-controls">
+          <button id="start-timer">Start</button>
+          <button id="reset-timer">Reset</button>
+          <button id="settings-btn">Settings</button>
+        </div>
+        <div id="pomodoro-settings" style="display: none; margin-top: 1rem">
+          <label
+            >Work (min):
+            <input type="number" id="work-duration" value="25" min="1"
+          /></label>
+          <label
+            >Short Break (min):
+            <input type="number" id="short-break" value="5" min="1"
+          /></label>
+          <label
+            >Long Break (min):
+            <input type="number" id="long-break" value="15" min="1"
+          /></label>
+          <label
+            >Cycles before Long Break:
+            <input type="number" id="cycles" value="4" min="1"
+          /></label>
+          <button id="save-settings">Save</button>
+        </div>
+      </div>
+
+      <!-- To-Do List -->
+      <div class="glass">
+        <h2>To-Do List</h2>
+        <input type="text" id="todo-input" placeholder="Add item..." />
+        <button id="add-todo">Add</button>
+        <ul id="todo-list"></ul>
+      </div>
+
+      <!-- Notepad -->
+      <div class="glass">
+        <h2>Notepad</h2>
+        <textarea
+          id="notes"
+          placeholder="Write your notes here...&#10;- Type '- ' for a bullet point&#10;- Use Tab/Shift+Tab to indent/outdent"
+        ></textarea>
+        <!-- Save button removed -->
+      </div>
+
+      <!-- Google Calendar -->
+      <div class="glass">
+        <h2>Google Calendar</h2>
+        <div id="calendar-auth">
+          <button id="authorize_button">Authorize Google Calendar</button>
+          <button id="signout_button" style="display: none">Sign Out</button>
+        </div>
+        <div id="calendar-container" style="display: none">
+          <div id="calendar-header">
+            <button id="prev-month">&lt;</button>
+            <span id="month-year"></span>
+            <button id="next-month">&gt;</button>
+          </div>
+          <div id="calendar-weekdays">
+            <div>Sun</div>
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+          </div>
+          <div id="calendar-grid"></div>
+          <h3 id="selected-date-header" style="margin-top: 1rem">Events</h3>
+          <ul id="calendar-events">
+            <li>Select a date to see events.</li>
+          </ul>
+        </div>
+        <div id="calendar-auth-message" style="display: block">
+          Authorize to view calendar.
+        </div>
+      </div>
+
+      <!-- Daily Review -->
+      <div class="glass">
+        <h2>Daily Review</h2>
+        <div class="filters">
+          <button data-filter="0">Today</button>
+          <button data-filter="7" class="active">Week</button>
+          <button data-filter="14">Fortnight</button>
+          <button data-filter="30">30 Days</button>
+        </div>
+        <div style="margin-top: 0.5rem">
+          <input
+            type="text"
+            id="review-filter-keyword"
+            placeholder="Filter by keyword..."
+          />
+        </div>
+        <div style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+          <label for="review-filter-type" style="display: block; margin-bottom: 0.3rem; color: #ccc; font-size: 0.9rem;">Filter by Type:</label>
+          <select id="review-filter-type">
+            <option value="all">All Events</option>
+            <option value="deadline">Only Deadlines 🚨</option>
+            <option value="work">Only Work Events 🐟</option>
+          </select>
+        </div>
+        <ul id="review-list">
+          <li>Authorize Calendar and select a filter.</li>
+        </ul>
+      </div>
+
+      <div class="glass" id="ai-chat-container">
+        <h2>AI Chat</h2>
+        <div id="chat-messages">
+          <!-- Chat messages will appear here -->
+          <div class="message ai">Hello! How can I help you today?</div>
+          <!-- Example user message -->
+          <!-- <div class="message user">Tell me about productivity techniques.</div> -->
+        </div>
+            <div id="chat-attachment-preview" style="display: none;">
+            <img id="preview-image" src="#" alt="Image preview"/>
+            <button id="remove-attachment-btn" aria-label="Remove attachment">&times;</button>
+          </div>
+          <div class="chat-input-area">
+            <button id="attach-file-btn" aria-label="Attach file">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+                <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0V3z"/>
+              </svg>
+            </button>
+            <button id="toggle-grounding-btn" class="grounding-enabled" aria-label="Disable chat grounding (history/files)" title="Grounding Enabled (Uses History & Files)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-link-45deg" viewBox="0 0 16 16">
+                <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1 1 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4 4 0 0 1-.128-1.287z"/>
+                <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z"/>
+              </svg>
+              <!-- SVG for disabled state (will swap in JS) -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-unlink" viewBox="0 0 16 16" style="display: none;">
+                 <path d="M13.56 6.06a4.5 4.5 0 0 0-6.364-6.364L6.06 1.06a4.5 4.5 0 0 0 6.364 6.364l1.131-1.132a.5.5 0 1 0-.708-.707L11.715 6.715a3.5 3.5 0 0 1-4.95-4.95l1.132-1.131a.5.5 0 0 0-.707-.708L6.058.793a4.5 4.5 0 0 0-6.364 6.364l1.132 1.132A.5.5 0 0 0 1.53 8.5H1.5a.5.5 0 0 0 0 1h.03a.5.5 0 0 0 .354-.146l1.132-1.132a4.5 4.5 0 0 0 6.364 0l1.131 1.132a.5.5 0 1 0 .707-.707z"/>
+                 <path d="M8.936 7.936 7.793 9.079a4.5 4.5 0 0 0 6.364 6.364l1.131-1.131a4.5 4.5 0 0 0-6.364-6.364L7.793 9.08a.5.5 0 0 0 .707.707l1.132-1.131a3.5 3.5 0 0 1 4.95 4.95l-1.131 1.131a.5.5 0 1 0 .707.708l1.131-1.132a4.5 4.5 0 0 0-6.364-6.364l-1.132-1.131a.5.5 0 0 0-.707 0H8.5a.5.5 0 0 0 0 1h.03a.5.5 0 0 0 .357.146z"/>
+              </svg>
+            </button>
+            <textarea id="chat-input" placeholder="Type message or attach file..." rows="1"></textarea>
+            <button id="send-chat-btn" aria-label="Send message">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16">
+                <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/>
+              </svg>
+            </button>
+          </div>
+          <input type="file" id="file-input" accept="image/*" style="display: none;">
+
+      </div>
+
+    </div>
+
+
+
+    <!-- SortableJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+  
+  </body>
+</html>

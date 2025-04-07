@@ -1,0 +1,926 @@
+/* Base styles */
+body {
+    font-family: 'Inter', sans-serif;
+    background: #0a0a23;
+    color: #fff;
+    margin: 0;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  /* --- Quick Links Bar --- */
+  #quick-links-container {
+    background: rgba(30, 30, 50, 0.5); /* Darker, slightly transparent background */
+    border-radius: 1.5rem; /* More rounded corners */
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  #quick-links-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem; /* Increased gap */
+    align-items: center; /* Align items vertically */
+    /* justify-content: center; /* Removed centering to allow + New on right */
+  }
+  
+  .quick-link-btn {
+    border: none;
+    padding: 0.75rem 1.5rem; /* Increased padding */
+    border-radius: 0.75rem; /* Slightly less rounded than container */
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem; /* Increased font size */
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+  
+  .quick-link-btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Style for the "+ New" button */
+  #add-new-link-btn {
+    background: #1db954; /* Green color like Spotify */
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+    margin-left: auto; /* Pushes the button to the right */
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  #add-new-link-btn:hover {
+    background: #1ed760;
+    transform: scale(1.03);
+  }
+  
+  /* --- Add Link Modal --- */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Darker overlay */
+    backdrop-filter: blur(5px);
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's on top */
+  }
+  
+  .modal-content {
+    background: #12122a; /* Dark background matching theme */
+    padding: 2rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4);
+    width: 90%;
+    max-width: 450px; /* Limit max width */
+    position: relative; /* For close button positioning */
+  }
+  
+  .modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: #fff;
+    text-align: center;
+  }
+  
+  .modal-content label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #ccc;
+    font-size: 0.9rem;
+  }
+  
+  .modal-content input[type='url'],
+  .modal-content input[type='text'] {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    color: #fff;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+  .modal-content input:focus {
+    outline: 2px solid #4fc3f7;
+    border-color: transparent; /* Hide default border on focus */
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .modal-close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.2rem;
+    line-height: 1;
+  }
+  .modal-close-btn:hover {
+    color: #fff;
+  }
+  
+  /* Main grid */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  @media (min-width: 768px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  /* Glassmorphism container */
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1rem;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex; /* Use flexbox for internal layout */
+    flex-direction: column; /* Stack elements vertically */
+  }
+  
+  .glass:hover {
+    border-color: #4fc3f7;
+  }
+  
+  .glass h2 {
+    margin-top: 0; /* Remove default top margin */
+    margin-bottom: 1rem;
+  }
+  
+  /* Buttons */
+  button,
+  input[type='submit'] {
+    background: transparent;
+    border: 1px solid #4fc3f7;
+    color: #4fc3f7;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif; /* Ensure font */
+    font-size: 0.9rem; /* Standardize button font size */
+  }
+  
+  button:hover,
+  input[type='submit']:hover {
+    background: #4fc3f7;
+    color: #121212;
+  }
+  
+  /* Specific button styles */
+  button.primary-action {
+    /* Style for main action buttons in modal/forms */
+    background: #4fc3f7;
+    color: #121212;
+    font-weight: 600;
+  }
+  button.primary-action:hover {
+    background: #64ddff; /* Lighter blue on hover */
+  }
+  button.secondary-action {
+    /* Style for cancel/close buttons */
+    background: transparent;
+    border: 1px solid #aaa;
+    color: #aaa;
+  }
+  button.secondary-action:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-color: #ccc;
+  }
+  
+  input,
+  textarea {
+    width: 100%;
+    box-sizing: border-box; /* Include padding and border */
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+  }
+  
+  input:focus,
+  textarea:focus {
+    outline: 2px solid #4fc3f7;
+  }
+  
+  /* Pomodoro Timer */
+  #timer-display {
+    font-size: 2rem;
+    margin: 1rem 0;
+    text-align: center;
+  }
+  #pomodoro-controls button {
+    margin: 0 0.25rem;
+  }
+  #pomodoro-settings label {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  #pomodoro-settings input[type='number'] {
+    width: 60px;
+    display: inline-block;
+    margin-left: 0.5rem;
+  }
+  
+  /* To-Do List */
+  #todo-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 1rem;
+    flex-grow: 1; /* Allow list to take space */
+    overflow-y: auto; /* Add scroll if needed */
+  }
+  
+  .todo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      background 0.3s ease,
+      color 0.3s ease,
+      opacity 0.3s ease,
+      transform 0.3s ease;
+  }
+  
+  .todo-item label {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    word-break: break-word;
+    cursor: pointer;
+  }
+  
+  .todo-item input[type='checkbox'] {
+    width: auto;
+    margin-right: 0.75rem;
+    accent-color: #4fc3f7;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  
+  .todo-item.completed {
+    background: rgba(79, 195, 247, 0.3);
+    color: #bbb;
+  }
+  
+  .todo-item.completed label {
+    text-decoration: line-through;
+  }
+  
+  .todo-item.adding {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  
+  .todo-item.removing {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  
+  .todo-item button.remove-todo {
+    background: transparent;
+    border: none;
+    color: #ff7f7f;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 0.5rem;
+    margin-left: 0.5rem;
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+  }
+  
+  .todo-item button.remove-todo:hover {
+    color: #f44336;
+    background: none;
+  }
+  
+  /* Notepad */
+  #notes {
+    flex-grow: 1; /* Allow textarea to fill available space */
+    background: rgba(255, 255, 255, 0.08); /* Slightly different background */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    line-height: 1.6; /* Improve readability */
+    min-height: 150px; /* Ensure minimum height */
+    resize: vertical; /* Allow vertical resize */
+  }
+  
+  /* Google Calendar Visual Styles */
+  #calendar-container {
+    margin-top: 1rem;
+    user-select: none;
+  }
+  #calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0 0.5rem;
+  }
+  #calendar-header span {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  #calendar-header button {
+    background: transparent;
+    border: 1px solid #4fc3f7;
+    color: #4fc3f7;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+  }
+  #calendar-header button:hover {
+    background: #4fc3f7;
+    color: #121212;
+  }
+  #calendar-weekdays,
+  #calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    text-align: center;
+  }
+  #calendar-weekdays div {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #aaa;
+    padding-bottom: 0.3rem;
+  }
+  .calendar-day {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    padding: 0.5rem 0.2rem;
+    font-size: 0.9rem;
+    min-height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    position: relative;
+  }
+  .calendar-day:hover:not(.padding-day) {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  .padding-day {
+    background: transparent;
+    cursor: default;
+    opacity: 0.5;
+  }
+  .current-day {
+    border: 1px solid #4fc3f7;
+    font-weight: bold;
+  }
+  .selected-day {
+    background: rgba(79, 195, 247, 0.3);
+    border: 1px solid #4fc3f7;
+  }
+  .event-dot {
+    width: 6px;
+    height: 6px;
+    background-color: #4fc3f7;
+    border-radius: 50%;
+    margin-top: 4px;
+  }
+  #calendar-events {
+    max-height: 150px;
+    overflow-y: auto;
+    margin-top: 0.5rem;
+  }
+  #selected-date-header {
+    font-size: 1rem;
+    color: #ccc;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.5rem;
+  }
+  #calendar-auth-message {
+    text-align: center;
+    color: #aaa;
+    margin-top: 1rem;
+  }
+  
+  /* Daily Review */
+  .filters button.active {
+    background: #4fc3f7;
+    color: #121212;
+  }
+  #review-filter-keyword {
+    width: calc(100% - 1.5rem);
+    margin-bottom: 1rem;
+  }
+  #review-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 0.5rem; /* Reduced margin */
+    overflow-y: auto;
+    flex-grow: 1; /* Allow list to take space */
+    max-height: 400px;
+  }
+  #calendar-events li,
+#review-list li {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.6rem 0.8rem; /* Adjusted padding slightly */
+  border-radius: 0.3rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+  display: flex; /* Use flexbox */
+  flex-direction: column; /* Stack title and datetime vertically */
+  line-height: 1.4; /* Adjust line height for readability */
+}
+
+/* Style for the main event title */
+.event-title {
+  font-weight: 600; /* Make title slightly bolder */
+  color: #fff; /* Ensure title is white */
+  word-break: break-word; /* Allow long titles to wrap */
+}
+
+/* Style for the date/time subtext */
+.event-datetime {
+  font-size: 0.8em; /* Smaller font size */
+  color: #aaa; /* Greyed-out color */
+  margin-top: 0.15em; /* Small space between title and datetime */
+}
+  
+  /* Scrollbar Styling for Webkit browsers (Chrome, Safari, Edge) */
+  #review-list::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+  }
+
+  #review-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05); /* Background of the track */
+    border-radius: 4px;
+  }
+
+  #review-list::-webkit-scrollbar-thumb {
+    background-color: rgba(79, 195, 247, 0.6); /* Color of the scroll thumb (semi-transparent blue) */
+    border-radius: 4px;
+    border: 2px solid transparent; /* Creates padding around thumb */
+    background-clip: content-box;
+  }
+
+  #review-list::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(79, 195, 247, 0.8); /* Darker/more opaque on hover */
+  }
+
+  .event-dot.deadline {
+    background-color: #f44336; /* Red color for deadlines */
+  }
+
+  /* Subtle fade-in animation */
+  .glass {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeIn 0.6s forwards;
+  }
+
+  /* Style the new dropdown */
+#review-filter-type {
+  width: 100%; /* Make it full width like other inputs */
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Match input border */
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem; /* Match button font size */
+  cursor: pointer;
+  appearance: none; /* Remove default system appearance */
+  /* Add a simple background arrow (adjust color/encoding if needed) */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23cccccc' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1em;
+}
+
+#review-filter-type:focus {
+  outline: 2px solid #4fc3f7;
+  border-color: transparent;
+}
+
+/* Style for the options (limited cross-browser support) */
+#review-filter-type option {
+    background: #12122A; /* Match modal background */
+    color: #fff;
+}
+
+/* Add style for the work event dot */
+.event-dot.work {
+  background-color: #4caf50; /* Green color for work */
+}
+
+
+  
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  #ai-chat-container {
+    display: flex;
+    flex-direction: column;
+    /* Add a default height or let flexbox handle it */
+    max-height: 700px; /* Example minimum height */
+  }
+  
+  #chat-messages {
+    flex-grow: 1;
+    overflow-y: auto; /* This was already here - keep it */
+    padding: 0.5rem 0.8rem;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    margin-bottom: 0.75rem;
+    min-height: 150px; /* Keep existing min-height */
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* Increased gap slightly */
+  
+    /* --- ADD THIS LINE --- */
+    max-height: 600px; /* Adjust this value as needed (e.g., 350px, 500px) */
+    /* --- END OF ADDED LINE --- */
+  }
+  
+  /* Message animation */
+  .message {
+    padding: 0.6rem 0.9rem; /* Slightly more padding */
+    border-radius: 0.75rem;
+    max-width: 85%;
+    word-wrap: break-word;
+    line-height: 1.45; /* Slightly increased line height */
+    opacity: 0; /* Start hidden for animation */
+    transform: translateY(10px); /* Start slightly lower */
+    animation: fadeInSlideUp 0.4s ease forwards;
+  }
+  /* Stagger animation for subsequent messages */
+  .message + .message {
+      animation-delay: 0.1s;
+  }
+  
+  @keyframes fadeInSlideUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .message.ai {
+    background: rgba(79, 195, 247, 0.2);
+    color: #e0e0e0;
+    border-bottom-left-radius: 0.2rem;
+    align-self: flex-start;
+    /* Ensure any max-height/overflow properties added in the last step are REMOVED */
+  }
+
+  .message.ai::-webkit-scrollbar {
+    width: 6px; /* Slightly thinner scrollbar */
+  }
+  
+  .message.ai::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1); /* Match chat messages track */
+    border-radius: 3px;
+  }
+  
+  .message.ai::-webkit-scrollbar-thumb {
+    background-color: rgba(79, 195, 247, 0.5); /* Match chat messages thumb */
+    border-radius: 3px;
+    border: 1px solid transparent;
+    background-clip: content-box;
+  }
+  
+  .message.ai::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(79, 195, 247, 0.7); /* Match chat messages thumb hover */
+  }
+  /* Paragraphs generated by the formatter */
+.message.ai p {
+  margin-top: 0.5em; /* Add some space between paragraphs */
+  margin-bottom: 0.5em;
+}
+.message.ai p:first-child {
+  margin-top: 0; /* No top margin for the very first paragraph */
+}
+.message.ai p:last-child {
+  margin-bottom: 0; /* No bottom margin for the very last paragraph */
+}
+
+/* Bold and Italic */
+.message.ai strong {
+  font-weight: 600; /* Or bold */
+}
+.message.ai em {
+  font-style: italic;
+}
+
+/* Unordered Lists (Bullets) */
+.message.ai ul {
+  list-style: disc; /* Use standard disc bullets */
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 1.5em; /* Indent the list */
+}
+.message.ai li {
+  margin-bottom: 0.25em; /* Space between list items */
+}
+
+/* Code Blocks */
+.message.ai pre {
+  background-color: rgba(0, 0, 0, 0.3); /* Darker background for code */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.5rem;
+  padding: 0.8em 1em;
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+  overflow-x: auto; /* Allow horizontal scrolling for long code lines */
+  white-space: pre; /* Preserve whitespace and line breaks */
+  word-wrap: normal; /* Prevent wrapping inside pre */
+}
+
+.message.ai code {
+  font-family: 'Courier New', Courier, monospace; /* Monospace font */
+  font-size: 0.9em; /* Slightly smaller font size */
+  color: #f0f0f0; /* Lighter color for code text */
+  /* Reset potential styles inherited from parent */
+  background: none;
+  border: none;
+  padding: 0;
+  white-space: inherit; /* Inherit from pre */
+}
+
+/* Ensure code blocks take precedence over paragraph margins */
+.message.ai pre + p,
+.message.ai ul + p,
+.message.ai p + pre,
+.message.ai p + ul {
+    margin-top: 0.8em; /* Consistent spacing around blocks */
+} 
+.message.ai.typing {
+  font-style: italic;
+  color: #aaa;
+  background: transparent;
+  padding: 0.3rem 0.9rem; /* Less padding */
+  animation: none; /* No entry animation for typing indicator */
+  opacity: 1;
+  transform: none;
+  /* Ensure max-height/overflow overrides added in the last step are REMOVED */
+}
+  .message.ai.typing::after {
+      content: '...';
+      display: inline-block;
+      animation: typingDots 1.2s infinite steps(3, end);
+  }
+  @keyframes typingDots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
+  }
+  
+  
+  .message.user {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border-bottom-right-radius: 0.2rem;
+    align-self: flex-end;
+  }
+  /* Style for user message containing image */
+  .message.user img.inline-preview {
+      max-width: 100%; /* Image takes full width of message */
+      max-height: 200px; /* Limit height */
+      border-radius: 0.5rem; /* Rounded corners */
+      margin-top: 0.5rem; /* Space between text and image */
+      display: block;
+  }
+  
+  
+  /* Attachment Preview Area */
+  #chat-attachment-preview {
+      position: relative;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      max-width: 150px; /* Limit preview size */
+  }
+  #preview-image {
+      display: block;
+      max-width: 100%;
+      max-height: 80px; /* Limit preview image height */
+      border-radius: 0.3rem;
+  }
+  #remove-attachment-btn {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ff7f7f; /* Red background */
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 14px;
+      line-height: 18px; /* Center the 'x' */
+      text-align: center;
+      cursor: pointer;
+      padding: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  #remove-attachment-btn:hover {
+      background: #f44336; /* Darker red */
+  }
+  
+  
+  .chat-input-area {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+  }
+  
+  #attach-file-btn {
+      background: transparent;
+      border: 1px solid #aaa; /* Subtle border */
+      color: #aaa;
+      border-radius: 0.5rem;
+      padding: 0.6rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      height: 40px; /* Match textarea initial height */
+      width: 40px;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+  #attach-file-btn:hover {
+      border-color: #4fc3f7;
+      color: #4fc3f7;
+      background: rgba(79, 195, 247, 0.1);
+  }
+  #attach-file-btn svg {
+      width: 18px;
+      height: 18px;
+  }
+  
+#toggle-grounding-btn {
+  background: transparent;
+  border: 1px solid #aaa; /* Default border */
+  color: #aaa;
+  border-radius: 0.5rem;
+  padding: 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 40px; /* Match textarea initial height */
+  width: 40px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#toggle-grounding-btn:hover {
+  border-color: #4fc3f7;
+  color: #4fc3f7;
+  background: rgba(79, 195, 247, 0.1);
+}
+
+#toggle-grounding-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Style for when grounding is ENABLED */
+#toggle-grounding-btn.grounding-enabled {
+  border-color: #4fc3f7; /* Blue border when enabled */
+  color: #4fc3f7;
+}
+#toggle-grounding-btn.grounding-enabled .bi-unlink {
+  display: none; /* Hide unlink icon */
+}
+#toggle-grounding-btn.grounding-enabled .bi-link-45deg {
+  display: inline-block; /* Show link icon */
+}
+
+/* Style for when grounding is DISABLED */
+#toggle-grounding-btn:not(.grounding-enabled) {
+  border-color: #aaa; /* Grey border when disabled */
+  color: #aaa;
+}
+#toggle-grounding-btn:not(.grounding-enabled) .bi-link-45deg {
+  display: none; /* Hide link icon */
+}
+#toggle-grounding-btn:not(.grounding-enabled) .bi-unlink {
+  display: inline-block; /* Show unlink icon */
+}
+
+
+  
+  #chat-input {
+    flex-grow: 1;
+    resize: none;
+    margin-bottom: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    line-height: 1.4;
+    height: 40px; /* Start with single line height */
+    min-height: 40px;
+    max-height: 120px; /* Limit max height before scrolling */
+    overflow-y: auto; /* Add scroll if needed */
+    padding: 0.6rem 0.8rem; /* Adjust padding */
+    box-sizing: border-box; /* Include padding in height */
+  }
+  
+  #send-chat-btn {
+    background: #4fc3f7;
+    color: #121212;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.6rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    height: 40px; /* Match textarea initial height */
+    width: 40px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #send-chat-btn:disabled { /* Style for disabled button */
+      background: #aaa;
+      cursor: not-allowed;
+  }
+  
+  #send-chat-btn:hover:not(:disabled) {
+    background: #64ddff;
+  }
+  
+  #send-chat-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  /* Scrollbar styling for chat messages */
+  #chat-messages::-webkit-scrollbar { width: 8px; }
+  #chat-messages::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); border-radius: 4px; }
+  #chat-messages::-webkit-scrollbar-thumb { background-color: rgba(79, 195, 247, 0.5); border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
+  #chat-messages::-webkit-scrollbar-thumb:hover { background-color: rgba(79, 195, 247, 0.7); }
+  /* Scrollbar styling for chat input textarea */
+  #chat-input::-webkit-scrollbar { width: 6px; }
+  #chat-input::-webkit-scrollbar-track { background: transparent; }
+  #chat-input::-webkit-scrollbar-thumb { background-color: rgba(79, 195, 247, 0.4); border-radius: 3px; }
