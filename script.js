@@ -751,7 +751,7 @@ function formatAIResponse(text) {
         // This leverages existing Google session cookies if the user is logged in
         // and has previously consented.
         console.log("No token in memory, attempting silent sign-in...");
-        gapiTokenClient.requestAccessToken({ prompt: "" }); // Use prompt: '' for silent attempt
+        gapiTokenClient.requestAccessToken({ prompt: "none" });
         // Note: The callback 'handleAuthResponse' will handle the result of this request.
         // We don't need to do anything else here immediately.
         // We still show the button initially, in case silent sign-in fails.
