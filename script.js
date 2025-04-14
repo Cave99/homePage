@@ -22,6 +22,7 @@ let chatSession;
 let attachedFile = null;
 let isAIResponding = false;
 let isGroundingEnabled = true;
+let isAIInitialized = false; // Track if AI has been initialized
 const gradients = [
   "linear-gradient(45deg, #e91e63, #f06292)",
   "linear-gradient(45deg, #ff9800, #ffb74d)",
@@ -398,9 +399,8 @@ async function initializeAIChat() {
     // --- Define Chat Options including the Google Search Tool ---
     const chatOptions = {
       history: [
-        // Optional: Add initial context/instructions here if desired
-        // { role: "user", parts: [{ text: "You are a helpful productivity assistant." }] },
-        // { role: "model", parts: [{ text: "Okay, I understand. How can I help?" }] },
+        { role: "user", parts: [{ text: "You are a helpful productivity assistant with access to my calendar events. You can tell me about my upcoming events and schedule when I ask. The events data will be provided in the chat context." }] },
+        { role: "model", parts: [{ text: "I understand that I have access to your calendar events and can help you manage your schedule. Feel free to ask me about your upcoming events or any other assistance you need." }] },
       ],
       generationConfig: {
         // Optional: Adjust generation parameters
@@ -424,14 +424,43 @@ async function initializeAIChat() {
       // ---------------------------
     };
 
+    // Format calendar events for context if available
+    let calendarContext = '';
+    if (monthlyEvents && Object.keys(monthlyEvents).length > 0) {
+      const formattedEvents = Object.entries(monthlyEvents)
+        .flatMap(([month, events]) => events)
+        .map(event => {
+          const start = event.start.dateTime || event.start.date;
+          const startDate = new Date(start);
+          const dateStr = startDate.toLocaleDateString('en-CA'); // YYYY-MM-DD
+          const timeStr = event.start.dateTime
+            ? startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+            : 'All Day';
+          return `${dateStr} ${timeStr} - ${event.summary || '(No Title)'}`;
+        })
+        .join('\n');
+      
+      if (formattedEvents) {
+        calendarContext = `\n\nHere are your upcoming calendar events:\n${formattedEvents}`;
+      }
+    }
+
+    // Add calendar context to initial message if available
+    const initialMessage = calendarContext
+      ? `You are a helpful productivity assistant with access to my calendar events. You can tell me about my upcoming events and schedule when I ask. Here is my current calendar data:${calendarContext}`
+      : "You are a helpful productivity assistant.";
+
+    // Update chat options with calendar context
+    chatOptions.history = [
+      { role: "user", parts: [{ text: initialMessage }] },
+      { role: "model", parts: [{ text: "I understand and have access to your calendar information. I can help you manage your schedule and answer questions about your upcoming events. What would you like to know?" }] }
+    ];
+
     // Start a new chat session with history AND the tool enabled
     chatSession = chatModel.startChat(chatOptions); // Pass the configured options
 
-    console.log("AI Chat initialized successfully with Google Search tool enabled.");
-    // Add initial message if chatMessages is empty
-    if (chatMessages.children.length === 0) {
-      addMessage("ai", "Hello! How can I help you today?");
-    }
+    console.log("AI Chat initialized successfully with Google Search tool and calendar context enabled.");
+    return true; // Indicate successful initialization
   } catch (error) {
     console.error("Error initializing AI Chat:", error);
     // Check if the error is specifically about tool incompatibility
@@ -506,6 +535,29 @@ async function handleSendMessage() {
   if (isAIResponding) return; // Don't send if AI is already working
 
   const text = chatInput.value.trim();
+
+  // Initialize AI on first message if not already initialized
+  if (!isAIInitialized) {
+    isAIResponding = true;
+    sendChatBtn.disabled = true;
+    chatInput.disabled = true;
+    attachFileBtn.disabled = true;
+    toggleGroundingBtn.disabled = true;
+    
+    try {
+      await initializeAIChat();
+      isAIInitialized = true;
+    } catch (error) {
+      console.error("Failed to initialize AI chat:", error);
+      addMessage("ai", "Failed to initialize AI chat. Please try again.", true);
+      isAIResponding = false;
+      sendChatBtn.disabled = false;
+      chatInput.disabled = false;
+      attachFileBtn.disabled = false;
+      toggleGroundingBtn.disabled = false;
+      return;
+    }
+  }
   // Check if a file is attached *before* potentially clearing it
   const fileIsAttached = attachedFile !== null;
   // Use the attached file data only if grounding is enabled
