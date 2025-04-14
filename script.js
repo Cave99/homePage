@@ -710,8 +710,7 @@ function escapeHtml(unsafe) {
 
 // --- Function to format AI response text with Markdown-like syntax ---
 function formatAIResponse(text) {
-  // ... (Keep your existing formatAIResponse function as it was)
-  // It handles markdown-like formatting (bold, italics, lists, code blocks)
+  // Function to format AI response text with Markdown-like syntax
   if (!text) return ""; // Handle empty input
 
   let html = text;
@@ -746,16 +745,16 @@ function formatAIResponse(text) {
     const listItemMatch = line.match(/^\s*[-*]\s+(.*)/);
     if (listItemMatch) {
       let itemContent = listItemMatch[1];
-      // Apply bold/italics within list item
-      itemContent = itemContent.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-      itemContent = itemContent.replace(/\*(.*?)\*/g, "<em>$1</em>");
-
+      
+      // Process the content before escaping HTML
+      // Apply formatting to list items (before escaping)
+      itemContent = applyTextFormatting(itemContent);
+      
       if (!inList) {
         formattedHtml += "<ul>";
         inList = true;
       }
-      // Use escapeHtml on itemContent before inserting into LI for safety
-      formattedHtml += `<li>${escapeHtml(itemContent)}</li>`;
+      formattedHtml += `<li>${itemContent}</li>`;
     } else {
       // If the line is not a list item, close the list if we were in one
       if (inList) {
@@ -763,14 +762,12 @@ function formatAIResponse(text) {
         inList = false;
       }
 
-      // Apply bold/italics to non-list lines
-      line = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-      line = line.replace(/\*(.*?)\*/g, "<em>$1</em>");
+      // Process the line before escaping HTML
+      line = applyTextFormatting(line);
 
       // Wrap non-empty, non-list lines in <p> tags for spacing, unless it's empty
-      // Use escapeHtml on the line content before wrapping in <p>
       if (line.trim()) {
-        formattedHtml += `<p>${escapeHtml(line)}</p>`;
+        formattedHtml += `<p>${line}</p>`;
       }
     }
   }
@@ -786,15 +783,27 @@ function formatAIResponse(text) {
     "$1"
   );
 
-  // Allow specific HTML tags (strong, em, ul, li, pre, code, p) generated above
-  // This requires careful consideration of security if the input `text` could
-  // ever contain malicious HTML. Since it's coming from the AI and we process
-  // it line-by-line applying specific formatting and escaping elsewhere,
-  // it should be relatively safe in this context.
-  // If maximum security is needed, a proper HTML sanitizer library should be used
-  // *after* this function. For now, we assume the controlled generation is sufficient.
-
   return formattedHtml;
+}
+
+// Helper function to apply text formatting (bold, italic)
+function applyTextFormatting(text) {
+  if (!text) return "";
+  
+  // First escape any HTML to prevent injection
+  let formatted = escapeHtml(text);
+  
+  // Then apply formatting
+  // 1. Bold: Replace **text** with <strong>text</strong>
+  formatted = formatted.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  
+  // 2. Italic: Replace _text_ with <em>text</em>
+  formatted = formatted.replace(/_(.*?)_/g, "<em>$1</em>");
+  
+  // 3. Also support *text* for italic (alternative syntax)
+  formatted = formatted.replace(/\*(.*?)\*/g, "<em>$1</em>");
+  
+  return formatted;
 }
 
 
